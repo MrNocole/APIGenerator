@@ -24,19 +24,29 @@ func LoginHandler(c *gin.Context) {
 
 func loginByForm(c *gin.Context) {
 	var info Login
-	if err := c.Bind(&info); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	if code := c.PostForm("captcha"); code != "" {
+		fmt.Println("captcha checking...")
+		if checkCaptcha(code, c) {
+			fmt.Println("captcha right!")
+			if err := c.Bind(&info); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				return
+			}
+			if !checkUserInfo(info.User, info.Password) {
+				c.JSON(http.StatusBadRequest, gin.H{"status": "304"})
+				return
+			}
+
+			c.SetCookie("userName", info.User, 60, "", "localhost", false, true)
+			c.SetCookie("password", info.Password, 60, "", "localhost", false, true)
+			fmt.Println("User Login")
+			fmt.Println("UserName--" + info.User + "\nPassword--" + info.Password)
+			c.JSON(http.StatusOK, gin.H{"status": "200"})
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"status": 400, "Error": "input captcha"})
 	}
-	if !checkInfo(info.User, info.Password) {
-		c.JSON(http.StatusBadRequest, gin.H{"status": "304"})
-		return
-	}
-	c.SetCookie("userName", info.User, 60, "", "localhost", false, true)
-	c.SetCookie("password", info.Password, 60, "", "localhost", false, true)
-	fmt.Println("User Login")
-	fmt.Println("UserName--" + info.User + "\nPassword--" + info.Password)
-	c.JSON(http.StatusOK, gin.H{"status": "200"})
+
 }
 
 func loginByJson(c *gin.Context) {
@@ -45,14 +55,14 @@ func loginByJson(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if !checkInfo(json.User, json.Password) {
+	if !checkUserInfo(json.User, json.Password) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": "304"})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "200"})
 }
 
-func checkInfo(userName string, password string) bool {
+func checkUserInfo(userName string, password string) bool {
 	isVaild := false
 	if userName == "root" && password == "admin" {
 		isVaild = true

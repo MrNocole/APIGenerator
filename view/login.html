@@ -59,7 +59,7 @@
         .logindiv {
             width: 400px;
             text-align: center;
-            align: center
+
         }
         
         .login {
@@ -115,15 +115,24 @@
         </div>
     </header>
 
-    <div class="logindiv">
-        <form action="http://localhost:8000/login" method="post" class="login" enctype="application/x-www-form-urlencoded">
+    <div class="description">
+        <form action="http://47.93.212.155:8000/login" method="post" class="login" enctype="application/x-www-form-urlencoded">
             <p>
                 <label for="username">username:</label>
                 <input name="username" type="text" />
             </p>
             <p>
                 <label for="pwd">password:</label>
-                <input name="password" type="text" />
+                <input name="password" type="password" />
+            </p>
+            <p>
+                <img src="/captcha" onclick="this.src='/captcha?v='+Math.random()">
+            </p>
+            <p class="description">
+                please input above number in 1 min
+            </p>
+            <p>
+                <input name="captcha" type="text">
             </p>
             <a href="http://{{.registerweb}}" id="register">New User</a>
             <input type="submit" value="submit" id="input" />

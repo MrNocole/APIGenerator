@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <title>Login</title>
+
+    <style type="text/css">
+        *,
+        body {
+            margin: 0px;
+            padding: 0px;
+        }
+        
+        body {
+            margin: 0px;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 20px;
+            background-color: #fff;
+        }
+        
+        header,
+        footer {
+            width: 960px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .logo {
+            /*background-repeat: no-repeat;*/
+            /*-webkit-background-size: 100px 100px;*/
+            /*background-size: 100px 100px;*/
+            /*background-position: center center;*/
+            text-align: center;
+            /*font-size: 42px;*/
+            padding: 250px 0 20px;
+            /*font-weight: normal;*/
+            /*text-shadow: 0px 1px 2px #ddd;*/
+        }
+        
+        header {
+            padding: 100px 0;
+        }
+        
+        footer {
+            line-height: 1.8;
+            text-align: center;
+            padding: 50px 0;
+            color: #999;
+        }
+        
+        .description {
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        .logindiv {
+            width: 400px;
+            text-align: center;
+            align: center
+        }
+        
+        .login {
+            text-align: center;
+            align: center;
+            font-size: 20px;
+        }
+        
+        a {
+            color: #444;
+            text-decoration: none;
+        }
+        
+        .backdrop {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0px 0px 100px #ddd;
+            z-index: -1;
+            top: 0px;
+            left: 0px;
+        }
+        
+        label {
+            cursor: pointer;
+            display: inline-block;
+            padding: 3px 6px;
+            text-align: right;
+            width: 150px;
+            vertical-align: top;
+        }
+        
+        #input {
+            align: center;
+            width: 100px;
+            height: 20px;
+        }
+
+
+        #register {
+            font-size: 17px;
+            text-align: center;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <header>
+        <h1 class="logo">input your email</h1>
+        <form action="http://localhost:8000/register-1" method="post">
+            <div class="description">
+                <input name="email" type="text" onFocus="this.value=''" value="email" >
+            </div>
+            <div class="description">
+                <img src="/captcha" onclick="this.src='/captcha?v='+Math.random()">
+            </div>
+            <div class="description">
+                <input name="captcha" type="text" onfocus="this.value=''" value="captcha">
+            </div>
+            <div class="description">
+                <input type="submit">
+            </div>
+        </form>
+
+    </header>
+
+<!--    <div class="logindiv">-->
+<!--        <form action="http://localhost:8000/login" method="post" class="login" enctype="application/x-www-form-urlencoded">-->
+<!--            <p>-->
+<!--                <label for="username">username:</label>-->
+<!--                <input name="username" type="text" />-->
+<!--            </p>-->
+<!--            <p>-->
+<!--                <label for="pwd">password:</label>-->
+<!--                <input name="password" type="password" />-->
+<!--            </p>-->
+<!--            <input type="submit" value="submit" id="input" />-->
+<!--        </form>-->
+<!--        <form>-->
+<!--            <p>-->
+<!--            </p>-->
+<!--            <p class="description">-->
+<!--                please input above number in 1 min-->
+<!--            </p>-->
+<!--            <p>-->
+<!--                <input name="captcha" type="text">-->
+<!--            </p>-->
+<!--        </form>-->
+<!--    </div>-->
+
+
+
+    <div class="backdrop"></div>
+</body>
+
+
+</html>

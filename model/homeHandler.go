@@ -13,6 +13,7 @@ func HomeHandler(c *gin.Context) {
 func UserCookieCheck(c *gin.Context) {
 	fmt.Println("MiddleWare begin...")
 	fmt.Println(c.Cookie("userName"))
+
 	if userName, err := c.Cookie("userName"); err == nil {
 		password, _ := c.Cookie("password")
 		fmt.Println("User found!--" + userName)
@@ -20,7 +21,7 @@ func UserCookieCheck(c *gin.Context) {
 			c.Next()
 			return
 		}
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "err"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Login info error!"})
 		c.Abort()
 		return
 	}
