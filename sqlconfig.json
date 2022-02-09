@@ -1,0 +1,6 @@
+{
+    "host":"bj-cynosdbmysql-grp-6y6h0pzu.sql.tencentcdb.com:28670",
+    "userName":"root",
+    "password":"**",
+    "dbName":"APIGenerator"
+}
