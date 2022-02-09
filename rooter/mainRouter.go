@@ -2,16 +2,26 @@ package rooter
 
 import (
 	"APIGenerator/model"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 	"net/http"
 )
 
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
+	_, err := model.Init()
+	if err != nil {
+		fmt.Println("数据库初始化失败!")
+	} else {
+		fmt.Println("数据库初始化成功!")
+	}
 	r.Use(model.SessionDefault("regular"))
 	r.LoadHTMLGlob("view/*")
+	NewUserInfoChan := make(chan *model.NewUserInfoInMysql, 10)
+	//util.RegisterServer(NewUserInfoChan)
 	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "login.html", gin.H{"registerweb": "47.93.212.155:8000/register-1"})
+		c.HTML(http.StatusOK, "login.html", gin.H{"registerweb": "localhost:8000/register-1"})
 	})
 	/*
 		Login Handler
@@ -19,7 +29,7 @@ func SetupRouter() *gin.Engine {
 	{
 		r.POST("/login", model.LoginHandler)
 		r.GET("/login", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "login.html", gin.H{"registerweb": "47.93.212.155:8000/register-1"})
+			c.HTML(http.StatusOK, "login.html", gin.H{"registerweb": "localhost:8000/register-1"})
 		})
 		r.GET("/captcha", func(c *gin.Context) {
 			model.Captcha(c, 4)
@@ -33,6 +43,13 @@ func SetupRouter() *gin.Engine {
 			c.HTML(http.StatusOK, "register-1.html", nil)
 		})
 		r.POST("/register-1", model.CheckEmail)
+		r.GET("/register-2", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "register-2.html", nil)
+		})
+		r.POST("/register-2", func(c *gin.Context) {
+			userInfo := model.CheckUsername(c)
+			NewUserInfoChan <- &userInfo
+		})
 	}
 
 	{

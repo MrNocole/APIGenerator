@@ -11,7 +11,6 @@ import (
 )
 
 func Captcha(c *gin.Context, length ...int) {
-	fmt.Println("set captcha")
 	l := captcha.DefaultLen
 	w, h := 107, 36
 	if len(length) == 1 {
@@ -51,7 +50,6 @@ func Serve(w http.ResponseWriter, r *http.Request, id, lang string, download boo
 func checkCaptcha(code string, c *gin.Context) bool {
 	session := sessions.Default(c)
 	if captchaId := session.Get("captcha"); captchaId != nil {
-		fmt.Println("captchaId got")
 		session.Delete("captcha")
 		_ = session.Save()
 		if captcha.VerifyString(captchaId.(string), code) {

@@ -50,7 +50,6 @@ func SendAnEmailDefault(to, subject, body string) error {
 	if err := MailConfig(); err != nil {
 		return err
 	}
-	fmt.Println(userinfo)
 	return SendToMail(userinfo.User, userinfo.Password, userinfo.Host, to, subject, body, "html")
 }
 
