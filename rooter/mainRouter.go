@@ -54,6 +54,10 @@ func SetupRouter() *gin.Engine {
 
 	{
 		r.GET("/home", model.UserCookieCheck, model.HomeHandler)
+		r.POST("/upload", model.FileUploadHandler)
+		r.GET("/upload", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "upload.html", nil)
+		})
 	}
 
 	r.NoRoute(func(c *gin.Context) {
