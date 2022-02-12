@@ -89,11 +89,14 @@ func SelectUserInfoByPermission(db *sqlx.DB, uuid int) (NewUserInfoInMysql, erro
 	return userinfo, nil
 }
 
-func SelectPasswordByUserName(db *sqlx.DB, username string) (string, error) {
-	var password string
-	err := db.Get(&password, "select password from userinfo where username=?", username)
-	if err != nil {
-		return "", err
+func SelectPasswordAndUUidByUserName(db *sqlx.DB, username string) (string, string, error) {
+	var retInfo struct {
+		Password string `db:"password"`
+		UUid     string `db:"uuid"`
 	}
-	return password, nil
+	err := db.Get(&retInfo, "select password,uuid from userinfo where username=?", username)
+	if err != nil {
+		return "", "", err
+	}
+	return retInfo.Password, retInfo.UUid, nil
 }

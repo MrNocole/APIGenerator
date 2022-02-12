@@ -35,18 +35,21 @@ func loginByForm(c *gin.Context) {
 				return
 			}
 			fmt.Println(info)
-			res, err := checkUserInfo(info.User, info.Password)
+			res, uuid, err := checkUserInfo(info.User, info.Password)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 				return
 			}
-			if res {
-				c.JSON(http.StatusBadRequest, gin.H{"status": "304"})
+			if !res {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"status":  "304",
+					"message": "password error",
+				})
 				return
 			}
-
-			c.SetCookie("userName", info.User, 60, "", "localhost", false, true)
-			c.SetCookie("password", info.Password, 60, "", "localhost", false, true)
+			c.SetCookie("uuid", uuid, 86400, "", "localhost", false, true)
+			c.SetCookie("userName", info.User, 86400, "", "localhost", false, true)
+			c.SetCookie("password", info.Password, 86400, "", "localhost", false, true)
 			fmt.Println("User Login")
 			fmt.Println("UserName--" + info.User + "\nPassword--" + info.Password)
 			c.JSON(http.StatusOK, gin.H{"status": "200"})
@@ -71,23 +74,23 @@ func loginByForm(c *gin.Context) {
 //	c.JSON(http.StatusOK, gin.H{"status": "200"})
 //}
 
-func checkUserInfo(userName string, password string) (bool, error) {
+func checkUserInfo(userName string, password string) (bool, string, error) {
 	if userName != " " {
 		sqlConfig := loadSQLConfig()
 		db, err := sqlx.Open("mysql", sqlConfig.User+":"+sqlConfig.Password+"@tcp("+sqlConfig.Host+")/"+sqlConfig.Database)
 		if err != nil {
-			return false, err
+			return false, "", err
 		}
-		crtPwd, err := SelectPasswordByUserName(db, userName)
+		crtPwd, uuid, err := SelectPasswordAndUUidByUserName(db, userName)
 		if err != nil {
-			return false, err
+			return false, uuid, err
 		}
 		if crtPwd == password {
-			return false, nil
+			return true, uuid, nil
 		} else {
-			return false, errors.New("password error")
+			return false, uuid, errors.New("password error")
 		}
 	} else {
-		return false, errors.New("input username")
+		return false, "", errors.New("input username")
 	}
 }

@@ -16,6 +16,12 @@ func SetupRouter() *gin.Engine {
 	} else {
 		fmt.Println("数据库初始化成功!")
 	}
+	err = model.InitDocumentation()
+	if err != nil {
+		fmt.Println("仓库初始化失败!")
+	} else {
+		fmt.Println("仓库初始化成功!")
+	}
 	r.Use(model.SessionDefault("regular"))
 	r.LoadHTMLGlob("view/*")
 	NewUserInfoChan := make(chan *model.NewUserInfoInMysql, 10)
