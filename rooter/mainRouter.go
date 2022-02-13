@@ -56,8 +56,10 @@ func SetupRouter() *gin.Engine {
 			userInfo := model.CheckUsername(c)
 			NewUserInfoChan <- &userInfo
 		})
+		r.GET("/download/:filename", model.DownloadByAPI)
 	}
 
+	// store Handler
 	{
 		r.GET("/home", model.UserCookieCheck, model.HomeHandler)
 		r.POST("/upload", model.FileUploadHandler)
@@ -66,6 +68,9 @@ func SetupRouter() *gin.Engine {
 		})
 	}
 
+	r.GET("/404", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "error.html", gin.H{"errorCode": "404"})
+	})
 	r.NoRoute(func(c *gin.Context) {
 		c.HTML(http.StatusNotFound, "error.html", gin.H{"errorCode": "404"})
 	})

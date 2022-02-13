@@ -54,7 +54,6 @@ func FileUploadHandler(c *gin.Context) {
 	// 上传完成的文件信息存到filesJson切片里
 	filesJson := make([]FileJson, 1)
 	files := form.File["files"]
-
 	// 获取上传者信息（仅用 uuid 识别，以后加入Token验证）
 	uuid, err := c.Cookie("uuid")
 	if err != nil {
@@ -64,7 +63,8 @@ func FileUploadHandler(c *gin.Context) {
 		})
 		return
 	}
-	OwnerInfo, err := getOwnerInfo(uuid)
+	OwnerInfo, err := GetOwnerInfo(uuid)
+	defer GetOwnerLock(uuid).Unlock()
 	if err != nil {
 		c.JSON(400, gin.H{
 			"message": "用户信息获取失败",
@@ -176,13 +176,12 @@ func checkFileIsExist(filename string) bool {
 	return exist
 }
 
-// 获取用户拥有文件的 Json，如果没有就新建。
-func getOwnerInfo(uuid string) (*OwnerInfo, error) {
+// GetOwnerInfo 获取用户拥有文件的 Json，如果没有就新建。这里会取锁，但不会主动释放
+func GetOwnerInfo(uuid string) (*OwnerInfo, error) {
 	fileName := "fileownerinfo/" + uuid + ".json"
 	fmt.Println(fileName)
-	lock := getOwnerLock(uuid)
+	lock := GetOwnerLock(uuid)
 	lock.Lock()
-	defer lock.Unlock()
 	var file *os.File
 	var ownerInfo OwnerInfo
 	if !checkFileIsExist(fileName) {
@@ -220,7 +219,6 @@ func getOwnerInfo(uuid string) (*OwnerInfo, error) {
 		}
 	}
 	buffer, err := ioutil.ReadFile(fileName)
-	fmt.Println(buffer)
 	if err != nil {
 		fmt.Println("read file error:", err)
 		return nil, err
@@ -233,7 +231,7 @@ func getOwnerInfo(uuid string) (*OwnerInfo, error) {
 	return &ownerInfo, nil
 }
 
-func getOwnerLock(uuid string) *sync.Mutex {
+func GetOwnerLock(uuid string) *sync.Mutex {
 	if _, ok := lockMap[uuid]; !ok {
 		lockMap[uuid] = &sync.Mutex{}
 	}
