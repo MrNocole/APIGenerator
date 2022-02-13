@@ -3,28 +3,84 @@ package model
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
+type Item struct {
+	Name string
+	URL  string
+}
+
 func HomeHandler(c *gin.Context) {
-	c.JSON(200, gin.H{"Status": "200"})
+	items := getItemList(c)
+	name, err := c.Cookie("userName")
+	if err != nil {
+		name = "UnKnown"
+	}
+	c.HTML(200, "home.html", gin.H{
+		"items":    items,
+		"userName": name,
+	})
+}
+
+func getItemList(c *gin.Context) []Item {
+	var items []Item
+	uuid, err := c.Cookie("uuid")
+	if err != nil {
+		fmt.Println("用户列表获取失败", err)
+		errItem := Item{
+			Name: "用户列表获取失败",
+			URL:  "/404",
+		}
+		items = append(items, errItem)
+	} else {
+		ownerInfo, err := GetOwnerInfo(uuid)
+		defer GetOwnerLock(uuid).Unlock()
+		if err != nil {
+			errItem := Item{
+				Name: "用户列表获取失败",
+				URL:  "/404",
+			}
+			items = append(items, errItem)
+		} else {
+			for _, v := range ownerInfo.FileName {
+				item := Item{
+					Name: v,
+					URL:  "/download/" + v,
+				}
+				items = append(items, item)
+			}
+		}
+	}
+	fmt.Println(items)
+	return items
 }
 
 func UserCookieCheck(c *gin.Context) {
 	fmt.Println("MiddleWare begin...")
 	fmt.Println(c.Cookie("userName"))
 
-	if userName, err := c.Cookie("userName"); err == nil {
-		password, _ := c.Cookie("password")
-		fmt.Println("User found!--" + userName)
-		if userName == "root" && password == "admin" {
-			c.Next()
-			return
-		}
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Login info error!"})
+	uuid, err := c.Cookie("uuid")
+	if err != nil {
+		fmt.Println("Cookie not found")
 		c.Abort()
-		return
 	}
-	fmt.Println("Cookie is not found")
-	c.Abort()
+	res, err := checkUser(uuid)
+	if err != nil {
+		fmt.Println("checkUserInfo error")
+		c.Abort()
+	}
+	if res {
+		fmt.Println("checkUserInfo success")
+		c.Next()
+	} else {
+		fmt.Println("checkUserInfo fail")
+		c.Abort()
+	}
+}
+
+func checkUser(uuid string) (bool, error) {
+	if uuid != "" {
+		return true, nil
+	}
+	return false, nil
 }

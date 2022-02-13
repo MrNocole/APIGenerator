@@ -4,7 +4,7 @@
 
 <head>
 
-    <title>Upload</title>
+    <title>Home</title>
 
     <style type="text/css">
         *,
@@ -54,6 +54,7 @@
         .description {
             text-align: center;
             font-size: 16px;
+            padding: 10px;
         }
 
         .logindiv {
@@ -113,13 +114,24 @@
     <div class="description">
         APIGenerator is a simple and free tool to get your own API URL
     </div>
+    <div class="description">
+        {{ .userName }}
+    </div>
 </header>
 
-<div class="logindiv">
+<div class="homediv">
     <form action="http://localhost:8000/upload" method="post" class="login" enctype="multipart/form-data">
-            <input type="file" name="files" multiple>
-            <input type="submit" value="submit" id="input" />
+        <input type="file" name="files" multiple>
+        <input type="submit" value="submit" id="input" />
     </form>
+
+    <div class="description">
+        {{range $i,$v := .items }}
+        <p>
+            <span>{{ $i }}</span> : <span> {{ $v.Name }} </span> <a href="http://localhost:8000{{ $v.URL }}">下载</a>
+        </p>
+        {{ end }}
+    </div>
 </div>
 
 

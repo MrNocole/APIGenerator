@@ -56,16 +56,16 @@ func SetupRouter() *gin.Engine {
 			userInfo := model.CheckUsername(c)
 			NewUserInfoChan <- &userInfo
 		})
-		r.GET("/download/:filename", model.DownloadByAPI)
 	}
 
 	// store Handler
 	{
+		r.GET("/download/:filename", model.DownloadByAPI)
 		r.GET("/home", model.UserCookieCheck, model.HomeHandler)
 		r.POST("/upload", model.FileUploadHandler)
-		r.GET("/upload", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "upload.html", nil)
-		})
+		//r.GET("/upload", func(c *gin.Context) {
+		//	c.HTML(http.StatusOK, "upload.html", nil)
+		//})
 	}
 
 	r.GET("/404", func(c *gin.Context) {

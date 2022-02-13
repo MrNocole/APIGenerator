@@ -52,7 +52,7 @@ func loginByForm(c *gin.Context) {
 			c.SetCookie("password", info.Password, 86400, "", "localhost", false, true)
 			fmt.Println("User Login")
 			fmt.Println("UserName--" + info.User + "\nPassword--" + info.Password)
-			c.JSON(http.StatusOK, gin.H{"status": "200"})
+			c.Redirect(302, "/home")
 		}
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"status": 400, "Error": "input captcha"})
