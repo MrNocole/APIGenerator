@@ -66,8 +66,8 @@ func SetupRouter() *gin.Engine {
 		//r.GET("/upload", func(c *gin.Context) {
 		//	c.HTML(http.StatusOK, "upload.html", nil)
 		//})
+		r.GET("/json/:uuid/:name", model.GetJson)
 	}
-
 	r.GET("/404", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "error.html", gin.H{"errorCode": "404"})
 	})

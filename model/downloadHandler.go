@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"os"
 	"sync"
@@ -78,4 +79,48 @@ func getFileMd5ByUserFile(uuid, file string) (string, error) {
 		}
 	}
 	return "", errors.New("文件不存在")
+}
+
+func GetJson(c *gin.Context) {
+	uuid := c.Param("uuid")
+	uuidCookie, err := c.Cookie("uuid")
+	if err != nil || uuid != uuidCookie {
+		fmt.Println("未知访问者")
+		c.Redirect(http.StatusTemporaryRedirect, "/404")
+	}
+	jsonName := c.Param("name") + ".json"
+	md5, err := getFileMd5ByUserFile(uuid, jsonName)
+	if err != nil || md5 == "" {
+		fmt.Println(err)
+		c.Redirect(http.StatusTemporaryRedirect, "/404")
+		return
+	}
+	file, err := getFileByMd5(md5)
+	if err != nil {
+		fmt.Println(err)
+		c.Redirect(http.StatusTemporaryRedirect, "/404")
+		return
+	}
+	var data []byte
+	data, err = io.ReadAll(file)
+	if err != nil {
+		fmt.Println(err)
+		c.Redirect(http.StatusTemporaryRedirect, "/404")
+		return
+	}
+	c.AsciiJSON(http.StatusOK, gin.H{
+		"user": uuid,
+		"data": string(data),
+	})
+}
+
+// 会获取文件锁但不主动释放
+func getFileByMd5(md5 string) (*os.File, error) {
+	filePath := "store/" + md5
+	file, err := os.Open(filePath)
+	if err != nil {
+		//fmt.Println("仓库文件打开失败", err)
+		return nil, err
+	}
+	return file, nil
 }
