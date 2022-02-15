@@ -1,6 +1,7 @@
 package model
 
 import (
+	"APIGenerator/util"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
@@ -8,6 +9,7 @@ import (
 type Item struct {
 	Name string
 	URL  string
+	Md5  string
 }
 
 func HomeHandler(c *gin.Context) {
@@ -16,9 +18,15 @@ func HomeHandler(c *gin.Context) {
 	if err != nil {
 		name = "UnKnown"
 	}
+	uuid, err := c.Cookie("uuid")
+	if err != nil {
+		fmt.Println("UUID is not found!")
+		c.Redirect(302, "/login")
+	}
 	c.HTML(200, "home.html", gin.H{
 		"items":    items,
 		"userName": name,
+		"uuid":     uuid,
 	})
 }
 
@@ -42,10 +50,11 @@ func getItemList(c *gin.Context) []Item {
 			}
 			items = append(items, errItem)
 		} else {
-			for _, v := range ownerInfo.FileName {
+			for i, v := range ownerInfo.FileName {
 				item := Item{
 					Name: v,
-					URL:  "/download/" + v,
+					URL:  "/download/" + uuid + "/" + v,
+					Md5:  ownerInfo.MD5[i],
 				}
 				items = append(items, item)
 			}
@@ -83,4 +92,16 @@ func checkUser(uuid string) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func CheckHandler(c *gin.Context) {
+	uuid := c.Param("uuid")
+	fileName := c.Param("name")
+	suffix := util.GetSuffix(fileName)
+	switch suffix {
+	case "json":
+		c.Redirect(302, "/json/"+uuid+"/"+fileName)
+	default:
+		c.Redirect(302, "/download/"+uuid+"/"+fileName)
+	}
 }

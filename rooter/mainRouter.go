@@ -60,12 +60,10 @@ func SetupRouter() *gin.Engine {
 
 	// store Handler
 	{
-		r.GET("/download/:filename", model.DownloadByAPI)
+		r.GET("/download/:uuid/:filename", model.DownloadByAPI)
 		r.GET("/home", model.UserCookieCheck, model.HomeHandler)
 		r.POST("/upload", model.FileUploadHandler)
-		//r.GET("/upload", func(c *gin.Context) {
-		//	c.HTML(http.StatusOK, "upload.html", nil)
-		//})
+		r.GET("/check/:uuid/:name", model.CheckHandler)
 		r.GET("/json/:uuid/:name", model.GetJson)
 	}
 	r.GET("/404", func(c *gin.Context) {

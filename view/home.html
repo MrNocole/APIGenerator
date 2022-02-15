@@ -128,7 +128,7 @@
     <div class="description">
         {{range $i,$v := .items }}
         <p>
-            <span>{{ $i }}</span> : <span> {{ $v.Name }} </span> <a href="http://localhost:8000{{ $v.URL }}">下载</a>
+            <span>{{ $i }}</span> : <span> <a href="http://localhost:8000/check/{{ $.uuid }}/{{$v.Name}}">{{ $v.Name }}</a>  </span> <a href="http://localhost:8000{{ $v.URL }}">下载</a>
         </p>
         {{ end }}
     </div>

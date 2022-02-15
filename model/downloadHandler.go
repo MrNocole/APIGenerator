@@ -16,11 +16,7 @@ var md5lock = make(map[string]*sync.Mutex)
 func DownloadByAPI(c *gin.Context) {
 	// 文件名和用户上传/修改后的文件名有关，对应一个唯一md5
 	filename := c.Param("filename")
-	uuid, err := c.Cookie("uuid")
-	if err != nil {
-		fmt.Println("未知访问者")
-		c.Redirect(http.StatusTemporaryRedirect, "/404")
-	}
+	uuid := c.Param("uuid")
 	// 拿到用户的文件列表遍历找到对应其文件名的md5
 	md5, err := getFileMd5ByUserFile(uuid, filename)
 	fmt.Println("md5:", md5)
@@ -88,7 +84,7 @@ func GetJson(c *gin.Context) {
 		fmt.Println("未知访问者")
 		c.Redirect(http.StatusTemporaryRedirect, "/404")
 	}
-	jsonName := c.Param("name") + ".json"
+	jsonName := c.Param("name")
 	md5, err := getFileMd5ByUserFile(uuid, jsonName)
 	if err != nil || md5 == "" {
 		fmt.Println(err)
