@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"io/ioutil"
+	"strconv"
 )
 
 type sqlConnectInfo struct {
@@ -15,15 +16,18 @@ type sqlConnectInfo struct {
 	Database string `json:"dbName"`
 }
 
-type NewUserInfo struct {
-	Username string `db:"username"`
-	Password string `db:"password"`
-	Email    string `db:"email"`
-}
+//type NewUserInfo struct {
+//	Username string `db:"username"`
+//	Password string `db:"password"`
+//	Email    string `db:"email"`
+//}
 type NewUserInfoInMysql struct {
-	NewUserInfo *NewUserInfo
-	UUid        string `db:"uuid"`
-	Permission  int    `db:"permission"`
+	//NewUserInfo *NewUserInfo
+	Username   string `db:"username"`
+	Password   string `db:"password"`
+	Email      string `db:"email"`
+	UUid       string `db:"uuid"`
+	Permission int    `db:"permission"`
 }
 
 var newUerInfoTable = `
@@ -54,36 +58,34 @@ func loadSQLConfig() *sqlConnectInfo {
 
 func Init() (*sqlx.DB, error) {
 	sqlConfig := loadSQLConfig()
-	db, err := sqlx.Open("mysql", sqlConfig.User+":"+sqlConfig.Password+"@tcp("+sqlConfig.Host+")/"+sqlConfig.Database)
+	db, err := sqlx.Connect("mysql", sqlConfig.User+":"+sqlConfig.Password+"@tcp("+sqlConfig.Host+")/"+sqlConfig.Database)
 	if err != nil {
 		return &sqlx.DB{}, errors.New("connect error: " + err.Error())
 	}
-	db.MustExec(newUerInfoTable)
+	_, err = db.Exec(newUerInfoTable)
+	if err != nil {
+		fmt.Println("Table init error! ", err)
+		return nil, err
+	}
 	fmt.Println("init userinfo table...")
 	var res NewUserInfoInMysql
-	if res, err = SelectUserInfoByPermission(db, -1); err != nil {
-		fmt.Println("select super user error:", err)
-		db.MustExec(dropUserInfoTable)
-		return &sqlx.DB{}, err
-	}
+	res, err = SelectUserInfoByPermission(db, -1)
 	if res == (NewUserInfoInMysql{}) {
 		fmt.Println("init super user")
 		db.MustExec(initSuperUser)
-	}
-	if res, err = SelectUserInfoByPermission(db, -1); err != nil {
-		fmt.Println("select super user error:", err)
-		db.MustExec(dropUserInfoTable)
-		return db, err
+	} else if err != nil {
+		fmt.Println("super user is not found:", err)
+		return nil, err
 	}
 	fmt.Println("super user info:", res)
-	fmt.Println("init mysql success")
 	return db, nil
 }
 
-func SelectUserInfoByPermission(db *sqlx.DB, uuid int) (NewUserInfoInMysql, error) {
-	var userinfo NewUserInfoInMysql
-	err := db.Get(&userinfo, "select * from userinfo where permission=?", uuid)
+func SelectUserInfoByPermission(db *sqlx.DB, permission int) (NewUserInfoInMysql, error) {
+	userinfo := NewUserInfoInMysql{}
+	err := db.Get(&userinfo, "select uuid,username,password,email,permission from userinfo where permission=?", strconv.Itoa(permission))
 	if err != nil {
+		fmt.Println("select userinfo error:", err)
 		return NewUserInfoInMysql{}, err
 	}
 	return userinfo, nil
