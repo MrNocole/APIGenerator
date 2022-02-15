@@ -1,16 +1,17 @@
 package model
 
 import (
+	"APIGenerator/util"
 	"fmt"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"math/rand"
+	"net/http"
 	"strconv"
 	"time"
 )
 
 func RandomCode() string {
-	return strconv.Itoa(int(time.Now().Unix() ^ 100000%10000))
+	return strconv.Itoa(int((time.Now().Unix() ^ 100000) % 10000))
 }
 
 func CheckEmail(c *gin.Context) {
@@ -19,7 +20,7 @@ func CheckEmail(c *gin.Context) {
 		if checkCaptcha(code, c) {
 			fmt.Println("captcha right")
 			email := c.PostForm("email")
-			emailVerifyCode := rand.Intn(9000) + 1000
+			emailVerifyCode := RandomCode()
 			fmt.Println(emailVerifyCode)
 			//if err := SendVerify(email, fmt.Sprintf("%d", emailVerifyCode)); err != nil {
 			//	fmt.Println(err)
@@ -40,7 +41,21 @@ func CheckEmail(c *gin.Context) {
 	}
 }
 
-func CheckUsername(c *gin.Context) (userInfo NewUserInfoInMysql) {
-
-	return userInfo
+func CheckUsername(c *gin.Context) (info *util.RegisterPostFrom) {
+	userName := c.PostForm("user")
+	passWord := c.PostForm("password")
+	if userName == "" || passWord == "" {
+		util.ErrorHtml(c, strconv.Itoa(http.StatusBadGateway), "用户名或密码不能为空")
+	}
+	info.UserName = userName
+	info.Password = passWord
+	session := sessions.Default(c)
+	verifyCode := c.PostForm("verify")
+	verifyCodeInSession := session.Get("emailVerifyCode").(string)
+	if verifyCode != verifyCodeInSession {
+		util.ErrorHtml(c, strconv.Itoa(http.StatusBadRequest), "验证码错误")
+	}
+	email := session.Get("email")
+	info.Email = email.(string)
+	return info
 }

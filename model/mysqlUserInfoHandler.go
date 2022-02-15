@@ -1,6 +1,7 @@
 package model
 
 import (
+	"APIGenerator/util"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,13 +17,7 @@ type sqlConnectInfo struct {
 	Database string `json:"dbName"`
 }
 
-//type NewUserInfo struct {
-//	Username string `db:"username"`
-//	Password string `db:"password"`
-//	Email    string `db:"email"`
-//}
 type NewUserInfoInMysql struct {
-	//NewUserInfo *NewUserInfo
 	Username   string `db:"username"`
 	Password   string `db:"password"`
 	Email      string `db:"email"`
@@ -54,6 +49,15 @@ func loadSQLConfig() *sqlConnectInfo {
 	}
 	fmt.Println("sqlconfig:", sqlConfig)
 	return sqlConfig
+}
+
+func GetSQLX() (*sqlx.DB, error) {
+	sqlConfig := loadSQLConfig()
+	db, err := sqlx.Connect("mysql", sqlConfig.User+":"+sqlConfig.Password+"@tcp("+sqlConfig.Host+")/"+sqlConfig.Database)
+	if err != nil {
+		return &sqlx.DB{}, errors.New("connect error: " + err.Error())
+	}
+	return db, nil
 }
 
 func Init() (*sqlx.DB, error) {
@@ -101,4 +105,13 @@ func SelectPasswordAndUUidByUserName(db *sqlx.DB, username string) (string, stri
 		return "", "", err
 	}
 	return retInfo.Password, retInfo.UUid, nil
+}
+
+func NewUserToMySQL(db *sqlx.DB, info *util.RegisterPostFrom) error {
+	_, err := db.Exec("insert into userinfo (uuid, username, password, email,permission) values (uuid(),?,?,?,0)", info.UserName, info.Password, info.Email)
+	if err != nil {
+		fmt.Println("insert userinfo error:", err)
+		return err
+	}
+	return nil
 }
