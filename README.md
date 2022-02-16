@@ -2,11 +2,11 @@
 
 主要技术：
 
-Golang--Web主体
+Golang version17+
 
 HTML
 
-Gin--Web框架
+Gin
 
 MySQL
 
