@@ -1,11 +1,13 @@
 package model
 
 import (
+	"APIGenerator/util"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"net/http"
+	"strconv"
 )
 
 type Login struct {
@@ -31,7 +33,8 @@ func loginByForm(c *gin.Context) {
 		if checkCaptcha(code, c) {
 			fmt.Println("captcha right!")
 			if err := c.Bind(&info); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				util.ErrorHtml(c, strconv.Itoa(http.StatusBadRequest), "参数错误")
+				fmt.Println(err)
 				return
 			}
 			fmt.Println(info)
@@ -55,7 +58,7 @@ func loginByForm(c *gin.Context) {
 			c.Redirect(302, "/home")
 		}
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"status": 400, "Error": "input captcha"})
+		util.ErrorHtml(c, strconv.Itoa(http.StatusBadRequest), "验证码错误")
 	}
 
 }
@@ -76,7 +79,7 @@ func loginByForm(c *gin.Context) {
 
 func checkUserInfo(userName string, password string) (bool, string, error) {
 	if userName != " " {
-		sqlConfig := loadSQLConfig()
+		sqlConfig := util.LoadSQLConfig()
 		db, err := sqlx.Open("mysql", sqlConfig.User+":"+sqlConfig.Password+"@tcp("+sqlConfig.Host+")/"+sqlConfig.Database)
 		if err != nil {
 			return false, "", err

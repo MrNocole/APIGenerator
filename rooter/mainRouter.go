@@ -28,6 +28,7 @@ func SetupRouter() *gin.Engine {
 	r.Use(model.SessionDefault("regular"))
 	r.LoadHTMLGlob("view/*")
 	NewUserInfoChan := make(chan *util.RegisterPostFrom, 10)
+	go util.RegisterServer(NewUserInfoChan)
 	//util.RegisterServer(NewUserInfoChan)
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", gin.H{"link": link, "registerweb": "/register-1"})
