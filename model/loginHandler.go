@@ -50,9 +50,9 @@ func loginByForm(c *gin.Context) {
 				})
 				return
 			}
-			c.SetCookie("uuid", uuid, 86400, "", "localhost", false, true)
-			c.SetCookie("userName", info.User, 86400, "", "localhost", false, true)
-			c.SetCookie("password", info.Password, 86400, "", "localhost", false, true)
+			c.SetCookie("uuid", uuid, 86400, "", util.GetIP(), false, true)
+			c.SetCookie("userName", info.User, 86400, "", util.GetIP(), false, true)
+			c.SetCookie("password", info.Password, 86400, "", util.GetIP(), false, true)
 			fmt.Println("User Login")
 			fmt.Println("UserName--" + info.User + "\nPassword--" + info.Password)
 			c.Redirect(302, "/home")

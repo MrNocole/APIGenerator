@@ -13,6 +13,21 @@ type HostInfo struct {
 	Port string `json:"port"`
 }
 
+func GetIP() string {
+	var hostInfo HostInfo
+	data, err := ioutil.ReadFile("host.json")
+	if err != nil {
+		fmt.Println("host json file read error")
+		panic(err)
+	}
+	err = json.Unmarshal(data, &hostInfo)
+	if err != nil {
+		fmt.Println("host json file unmarshal error")
+		panic(err)
+	}
+	return hostInfo.Host
+}
+
 func GetUrl() string {
 	if url != "" {
 		return url

@@ -27,6 +27,7 @@ func HomeHandler(c *gin.Context) {
 		"items":    items,
 		"userName": name,
 		"uuid":     uuid,
+		"link":     util.GetUrl(),
 	})
 }
 
@@ -98,6 +99,7 @@ func CheckHandler(c *gin.Context) {
 	uuid := c.Param("uuid")
 	fileName := c.Param("name")
 	suffix := util.GetSuffix(fileName)
+	fmt.Println(suffix)
 	switch suffix {
 	case "json":
 		c.Redirect(302, "/json/"+uuid+"/"+fileName)

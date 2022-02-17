@@ -46,6 +46,7 @@ func CheckUsername(c *gin.Context) (info *util.RegisterPostFrom) {
 	passWord := c.PostForm("password")
 	if userName == "" || passWord == "" {
 		util.ErrorHtml(c, strconv.Itoa(http.StatusBadGateway), "用户名或密码不能为空")
+		return nil
 	}
 	info.UserName = userName
 	info.Password = passWord
