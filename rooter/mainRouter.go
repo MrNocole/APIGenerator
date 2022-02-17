@@ -19,7 +19,7 @@ func SetupRouter() *gin.Engine {
 	} else {
 		fmt.Println("数据库初始化成功!")
 	}
-	err = model.InitDocumentation()
+	err = model.InitStore()
 	if err != nil {
 		fmt.Println("仓库初始化失败!")
 	} else {
@@ -74,7 +74,9 @@ func SetupRouter() *gin.Engine {
 		r.POST("/upload", model.FileUploadHandler)
 		r.GET("/check/:uuid/:name", model.CheckHandler)
 		r.GET("/json/:uuid/:name", model.GetJson)
+		r.GET("/pic/:uuid/:name", model.GetPic)
 	}
+
 	r.GET("/404", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "error.html", gin.H{"errorCode": "404", "info": "您访问的页面不存在"})
 	})

@@ -238,17 +238,44 @@ func GetOwnerLock(uuid string) *sync.Mutex {
 	return lockMap[uuid]
 }
 
-func InitDocumentation() error {
+func InitStore() error {
+	if !checkFileIsExist("filetransit") {
+		err := os.Mkdir("filetransit", os.ModePerm)
+		if err != nil {
+			return err
+		}
+		fmt.Println("初始化中转仓库")
+	} else {
+		fmt.Println("中转仓库已存在")
+	}
+	if !checkFileIsExist("fileownerinfo") {
+		err := os.Mkdir("fileownerinfo", os.ModePerm)
+		if err != nil {
+			return err
+		}
+		fmt.Println("初始化用户清单")
+	} else {
+		fmt.Println("用户清单已存在")
+	}
+	if !checkFileIsExist("store") {
+		err := os.Mkdir("store", os.ModePerm)
+		if err != nil {
+			return err
+		}
+		fmt.Println("初始化仓库")
+	} else {
+		fmt.Println("仓库已存在")
+	}
 	if !checkFileIsExist("Documentation.json") {
 		_, err := os.Create("Documentation.json")
 		if err != nil {
-			return error(err)
+			return err
 		}
-		return nil
+		fmt.Println("初始化仓库清单")
 	} else {
-		fmt.Println("仓库已存在！")
-		return nil
+		fmt.Println("仓库清单已存在！")
 	}
+	return nil
 }
 
 // 验证文件对应 md5 是否已经存在，并更新文件json

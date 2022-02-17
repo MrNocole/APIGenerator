@@ -103,6 +103,10 @@ func CheckHandler(c *gin.Context) {
 	switch suffix {
 	case "json":
 		c.Redirect(302, "/json/"+uuid+"/"+fileName)
+	case "jpg":
+		c.Redirect(302, "/pic/"+uuid+"/"+fileName)
+	case "png":
+		c.Redirect(302, "/pic/"+uuid+"/"+fileName)
 	default:
 		c.Redirect(302, "/download/"+uuid+"/"+fileName)
 	}
