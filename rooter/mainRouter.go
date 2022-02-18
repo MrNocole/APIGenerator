@@ -25,6 +25,7 @@ func SetupRouter() *gin.Engine {
 	} else {
 		fmt.Println("仓库初始化成功!")
 	}
+	redisPool := model.InitRedis()
 	r.Use(model.SessionDefault("regular"))
 	r.LoadHTMLGlob("view/*")
 	NewUserInfoChan := make(chan *util.RegisterPostFrom, 10)
@@ -70,7 +71,9 @@ func SetupRouter() *gin.Engine {
 	// store Handler
 	{
 		r.GET("/download/:uuid/:filename", model.DownloadByAPI)
-		r.GET("/home", model.UserCookieCheck, model.HomeHandler)
+		r.GET("/home", model.UserCookieCheck, func(c *gin.Context) {
+			model.HomeHandler(c, redisPool)
+		})
 		r.POST("/upload", model.FileUploadHandler)
 		r.GET("/check/:uuid/:name", model.CheckHandler)
 		r.GET("/json/:uuid/:name", model.GetJson)

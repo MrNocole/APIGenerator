@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/smtp"
 	"strings"
 	"sync"
@@ -20,6 +21,7 @@ var config_file_locker sync.Mutex
 
 func MailConfig() error {
 	config_file_locker.Lock()
+	defer config_file_locker.Unlock()
 	data, err := ioutil.ReadFile("mailconfig.json")
 	if err != nil {
 		return err
@@ -39,7 +41,6 @@ func SendToMail(user, password, host, to, subject, body, mailtype string) error 
 	} else {
 		content_type = "Content-Type: text/plain" + "; charset=UTF-8"
 	}
-
 	msg := []byte("To: " + to + "\r\nFrom: " + user + ">\r\nSubject: " + subject + "\r\n" + content_type + "\r\n\r\n" + body)
 	send_to := strings.Split(to, ";")
 	err := smtp.SendMail(host, auth, user, send_to, msg)
@@ -60,10 +61,22 @@ func SendAnEmail(to, subject, body, mailtype string) error {
 	return SendToMail(userinfo.User, userinfo.Password, userinfo.Host, to, subject, body, mailtype)
 }
 
+func randomInt(min, max int) int {
+	return min + rand.Intn(max-min)
+}
+
+func randomString(len int) string {
+	bytes := make([]byte, len)
+	for i := 0; i < len; i++ {
+		bytes[i] = byte(randomInt(65, 90))
+	}
+	return string(bytes)
+}
+
 func SendVerify(to, code string) error {
 	body := "verify code :" + code
 	fmt.Println(body + "  " + to)
-	return SendAnEmailDefault(to, "verify code", body)
+	return SendAnEmailDefault(to, randomString(randomInt(5, 10))+body, body)
 	//user := "1926276913@qq.com"
 	//password := "hiuppgxofkbpejjb"
 	//host := "smtp.qq.com:25"

@@ -22,10 +22,11 @@ func CheckEmail(c *gin.Context) {
 			email := c.PostForm("email")
 			emailVerifyCode := RandomCode()
 			fmt.Println(emailVerifyCode)
-			//if err := SendVerify(email, fmt.Sprintf("%d", emailVerifyCode)); err != nil {
-			//	fmt.Println(err)
-			//	c.Abort()
-			//}
+			go func(emailVerifyCode string) {
+				if err := SendVerify(email, emailVerifyCode); err != nil {
+					fmt.Println(err)
+				}
+			}(emailVerifyCode)
 			session := sessions.Default(c)
 			session.Set("email", email)
 			session.Set("emailVerifyCode", emailVerifyCode)
@@ -41,12 +42,17 @@ func CheckEmail(c *gin.Context) {
 	}
 }
 
-func CheckUsername(c *gin.Context) (info *util.RegisterPostFrom) {
+func CheckUsername(c *gin.Context) *util.RegisterPostFrom {
 	userName := c.PostForm("user")
 	passWord := c.PostForm("password")
+	fmt.Println(userName + " " + passWord)
 	if userName == "" || passWord == "" {
 		util.ErrorHtml(c, strconv.Itoa(http.StatusBadGateway), "用户名或密码不能为空")
 		return nil
+	}
+	info := util.RegisterPostFrom{
+		UserName: userName,
+		Password: passWord,
 	}
 	info.UserName = userName
 	info.Password = passWord
@@ -58,5 +64,5 @@ func CheckUsername(c *gin.Context) (info *util.RegisterPostFrom) {
 	}
 	email := session.Get("email")
 	info.Email = email.(string)
-	return info
+	return &info
 }

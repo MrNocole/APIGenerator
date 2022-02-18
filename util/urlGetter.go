@@ -28,6 +28,21 @@ func GetIP() string {
 	return hostInfo.Host
 }
 
+func GetPort() string {
+	var hostInfo HostInfo
+	data, err := ioutil.ReadFile("host.json")
+	if err != nil {
+		fmt.Println("host json file read error")
+		panic(err)
+	}
+	err = json.Unmarshal(data, &hostInfo)
+	if err != nil {
+		fmt.Println("host json file unmarshal error")
+		panic(err)
+	}
+	return hostInfo.Port
+}
+
 func GetUrl() string {
 	if url != "" {
 		return url

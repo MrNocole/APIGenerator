@@ -1,6 +1,7 @@
 package model
 
 import (
+	"APIGenerator/util"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -168,14 +169,6 @@ func updateSlice(slice []string, index int, value string, wg *sync.WaitGroup) []
 	return slice
 }
 
-func checkFileIsExist(filename string) bool {
-	var exist = true
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		exist = false
-	}
-	return exist
-}
-
 // GetOwnerInfo 获取用户拥有文件的 Json，如果没有就新建。这里会取锁，但不会主动释放
 func GetOwnerInfo(uuid string) (*OwnerInfo, error) {
 	fileName := "fileownerinfo/" + uuid + ".json"
@@ -184,7 +177,7 @@ func GetOwnerInfo(uuid string) (*OwnerInfo, error) {
 	lock.Lock()
 	var file *os.File
 	var ownerInfo OwnerInfo
-	if !checkFileIsExist(fileName) {
+	if !util.CheckFileIsExist(fileName) {
 		fmt.Println("first time upload! create a json for owner")
 		var err error
 		file, err = os.Create(fileName)
@@ -239,7 +232,7 @@ func GetOwnerLock(uuid string) *sync.Mutex {
 }
 
 func InitStore() error {
-	if !checkFileIsExist("filetransit") {
+	if !util.CheckFileIsExist("filetransit") {
 		err := os.Mkdir("filetransit", os.ModePerm)
 		if err != nil {
 			return err
@@ -248,7 +241,7 @@ func InitStore() error {
 	} else {
 		fmt.Println("中转仓库已存在")
 	}
-	if !checkFileIsExist("fileownerinfo") {
+	if !util.CheckFileIsExist("fileownerinfo") {
 		err := os.Mkdir("fileownerinfo", os.ModePerm)
 		if err != nil {
 			return err
@@ -257,7 +250,7 @@ func InitStore() error {
 	} else {
 		fmt.Println("用户清单已存在")
 	}
-	if !checkFileIsExist("store") {
+	if !util.CheckFileIsExist("store") {
 		err := os.Mkdir("store", os.ModePerm)
 		if err != nil {
 			return err
@@ -266,7 +259,7 @@ func InitStore() error {
 	} else {
 		fmt.Println("仓库已存在")
 	}
-	if !checkFileIsExist("Documentation.json") {
+	if !util.CheckFileIsExist("Documentation.json") {
 		_, err := os.Create("Documentation.json")
 		if err != nil {
 			return err
