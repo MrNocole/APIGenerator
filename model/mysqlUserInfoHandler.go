@@ -32,7 +32,7 @@ var dropUserInfoTable = `
 drop table if exists userinfo ;
 `
 
-func Init() (*sqlx.DB, error) {
+func InitSQL() (*sqlx.DB, error) {
 	db, err := util.GetSQLX()
 	if err != nil {
 		return &sqlx.DB{}, errors.New("connect error: " + err.Error())

@@ -91,7 +91,6 @@ func RedisInsertSet(Conn redis.Conn, key string, args string) {
 }
 
 func RedisInsertH(Conn redis.Conn, UUid string, key string, arg string) {
-	fmt.Println("redis hmap:", UUid, " insert ", key, ":", arg)
 	_, err := Conn.Do("HSET", UUid, key, arg)
 	if err != nil {
 		fmt.Println("redis插入失败", err)

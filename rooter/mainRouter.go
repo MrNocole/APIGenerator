@@ -9,10 +9,18 @@ import (
 	"net/http"
 )
 
+// redis 连接池
+var redisPool = model.InitRedis()
+
+// 当前链接
+var link = util.GetUrl()
+
+// NewUserInfoChan 新用户注册channel
+var NewUserInfoChan = make(chan *util.RegisterPostFrom, 10)
+
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
-	_, err := model.Init()
-	link := util.GetUrl()
+	_, err := model.InitSQL()
 	fmt.Println(link)
 	if err != nil {
 		fmt.Println("数据库初始化失败!")
@@ -25,62 +33,21 @@ func SetupRouter() *gin.Engine {
 	} else {
 		fmt.Println("仓库初始化成功!")
 	}
-	redisPool := model.InitRedis()
+
 	r.Use(model.SessionDefault("regular"))
 	r.LoadHTMLGlob("view/*")
-	NewUserInfoChan := make(chan *util.RegisterPostFrom, 10)
+	// 初始化 store 相关的路由
+	initStoreRooter(r)
+	// 初始化 登录注册相关的路由
+	initLoginRooter(r)
+	initRegisterRooter(r)
+	// 注册服务启动
 	go util.RegisterServer(NewUserInfoChan)
 	//util.RegisterServer(NewUserInfoChan)
+
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", gin.H{"link": link, "registerweb": "/register-1"})
 	})
-	/*
-		Login Handler
-	*/
-	{
-		r.POST("/login", model.LoginHandler)
-		r.GET("/login", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "login.html", gin.H{"link": link, "registerweb": "/register-1"})
-		})
-		r.GET("/captcha", func(c *gin.Context) {
-			model.Captcha(c, 4)
-		})
-	}
-	/*
-		Register handler
-	*/
-	{
-		r.GET("/register-1", model.Session("regular", 180, "emailverify"), func(c *gin.Context) {
-			c.HTML(http.StatusOK, "register-1.html", gin.H{
-				"link": link,
-			})
-		})
-		r.POST("/register-1", model.CheckEmail)
-		r.GET("/register-2", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "register-2.html", gin.H{
-				"link": link,
-			})
-		})
-		r.POST("/register-2", func(c *gin.Context) {
-			userInfo := model.CheckUsername(c)
-			fmt.Println(userInfo)
-			NewUserInfoChan <- userInfo
-		})
-	}
-
-	// store Handler
-	{
-		r.GET("/download/:uuid/:filename", model.DownloadByAPI)
-		r.GET("/home", model.UserCookieCheck, func(c *gin.Context) {
-			model.HomeHandler(c, redisPool)
-		})
-		r.POST("/upload", func(c *gin.Context) {
-			model.FileUploadHandler(c, redisPool.Get())
-		})
-		r.GET("/check/:uuid/:name", model.CheckHandler)
-		r.GET("/json/:uuid/:name", model.GetJson)
-		r.GET("/pic/:uuid/:name", model.GetPic)
-	}
 
 	r.GET("/404", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "error.html", gin.H{"errorCode": "404", "info": "您访问的页面不存在"})
