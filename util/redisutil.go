@@ -65,8 +65,34 @@ func RedisGetSet(Conn redis.Conn, key string) ([]string, error) {
 	return reply, err
 }
 
+func RedisGetHKeys(Conn redis.Conn, key string) ([]string, error) {
+	reply, err := redis.Strings(Conn.Do("HKEYS", key))
+	if err != nil {
+		fmt.Println("查询Redis失败", err)
+		return nil, err
+	}
+	return reply, err
+}
+
+func RedisGetHVals(Conn redis.Conn, key string) ([]string, error) {
+	reply, err := redis.Strings(Conn.Do("HVALS", key))
+	if err != nil {
+		fmt.Println("查询Redis失败", err)
+		return nil, err
+	}
+	return reply, err
+}
+
 func RedisInsertSet(Conn redis.Conn, key string, args string) {
 	_, err := Conn.Do("SADD", key, args)
+	if err != nil {
+		fmt.Println("redis插入失败", err)
+	}
+}
+
+func RedisInsertH(Conn redis.Conn, UUid string, key string, arg string) {
+	fmt.Println("redis hmap:", UUid, " insert ", key, ":", arg)
+	_, err := Conn.Do("HSET", UUid, key, arg)
 	if err != nil {
 		fmt.Println("redis插入失败", err)
 	}

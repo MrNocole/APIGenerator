@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/gomodule/redigo/redis"
 	"io"
 	"io/ioutil"
 	"os"
@@ -44,7 +45,7 @@ type FileMD5 struct {
 }
 
 // FileUploadHandler 处理上传post
-func FileUploadHandler(c *gin.Context) {
+func FileUploadHandler(c *gin.Context, Conn redis.Conn) {
 	form, err := c.MultipartForm()
 	if err != nil {
 		c.JSON(400, gin.H{
@@ -112,7 +113,7 @@ func FileUploadHandler(c *gin.Context) {
 		go updateSlice(newMd5Name, i, md5Code, &wg)
 		// 这里 1.把文件从中转移动到仓库 2.更新仓库清单
 		go transitFile(pfile, md5Code)
-
+		go util.RedisInsertH(Conn, uuid, fileName, md5Code)
 		// 调试用的
 		filetmp := FileJson{
 			FileName: file.Filename,
@@ -150,6 +151,9 @@ func FileUploadHandler(c *gin.Context) {
 		})
 		return
 	}
+
+	// 上传成功之后要更新用户在redis中的缓存。
+
 	c.JSON(200, gin.H{
 		"message": "上传成功",
 		"data":    string(jsonByte),

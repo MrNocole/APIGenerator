@@ -74,7 +74,9 @@ func SetupRouter() *gin.Engine {
 		r.GET("/home", model.UserCookieCheck, func(c *gin.Context) {
 			model.HomeHandler(c, redisPool)
 		})
-		r.POST("/upload", model.FileUploadHandler)
+		r.POST("/upload", func(c *gin.Context) {
+			model.FileUploadHandler(c, redisPool.Get())
+		})
 		r.GET("/check/:uuid/:name", model.CheckHandler)
 		r.GET("/json/:uuid/:name", model.GetJson)
 		r.GET("/pic/:uuid/:name", model.GetPic)

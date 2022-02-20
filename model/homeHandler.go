@@ -45,9 +45,9 @@ func getItemList(c *gin.Context, pool *redis.Pool) []Item {
 		return items
 	} else {
 		// 先查redis有没有，没有就到硬盘找
-		fileNames, err := util.RedisGetSet(pool.Get(), uuid+"_filename")
-		md5s, err := util.RedisGetSet(pool.Get(), uuid+"_md5")
-		//fmt.Println("Reply len", len(reply))
+		fileNames, err := util.RedisGetHKeys(pool.Get(), uuid)
+		md5s, err := util.RedisGetHVals(pool.Get(), uuid)
+		fmt.Println(fileNames, " ", md5s)
 		// 以下两个if是redis中没有的情况
 		if err != nil {
 			fmt.Println("Redis 读取Items失败", err)
@@ -64,7 +64,7 @@ func getItemList(c *gin.Context, pool *redis.Pool) []Item {
 			for i := 0; i < Min(len(fileNames), len(md5s)); i++ {
 				tmpItem := Item{
 					Name: fileNames[i],
-					URL:  "/download/" + uuid + fileNames[i],
+					URL:  "/download/" + uuid + "/" + fileNames[i],
 					Md5:  md5s[i],
 				}
 				items = append(items, tmpItem)
@@ -103,24 +103,18 @@ func getItemListFromDisk(uuid string) []Item {
 }
 
 func updateRedisItemsData(uuid string, items []Item, Conn redis.Conn) {
-	fmt.Println("redis 更新中 真")
-	var fileNames = make([]string, len(items))
-	var md5s = make([]string, len(items))
+	var fileNames []string
+	var md5s []string
 	for _, item := range items {
 		fileNames = append(fileNames, item.Name)
 		md5s = append(md5s, item.Md5)
 	}
-	fmt.Println("Redis Update", fileNames, md5s)
-	func(fileNames []string) {
-		for _, fileName := range fileNames {
-			util.RedisInsertSet(Conn, uuid+"_filename", fileName)
+	func(fileNames []string, md5s []string) {
+		for i, fileName := range fileNames {
+			util.RedisInsertH(Conn, uuid, fileName, md5s[i])
 		}
-	}(fileNames)
-	func(md5s []string) {
-		for _, md5 := range md5s {
-			util.RedisInsertSet(Conn, uuid+"_md5", md5)
-		}
-	}(md5s)
+	}(fileNames, md5s)
+
 }
 
 func UserCookieCheck(c *gin.Context) {
