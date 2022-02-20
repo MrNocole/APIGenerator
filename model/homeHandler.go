@@ -62,6 +62,9 @@ func getItemList(c *gin.Context, pool *redis.Pool) []Item {
 		} else {
 			fmt.Println("redis 命中")
 			for i := 0; i < Min(len(fileNames), len(md5s)); i++ {
+				if fileNames[i] == "" {
+					continue
+				}
 				tmpItem := Item{
 					Name: fileNames[i],
 					URL:  "/download/" + uuid + "/" + fileNames[i],
