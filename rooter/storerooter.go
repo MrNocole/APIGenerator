@@ -10,6 +10,9 @@ func initStoreRooter(r *gin.Engine) {
 	r.GET("/home", model.UserCookieCheck, func(c *gin.Context) {
 		model.HomeHandler(c, redisPool)
 	})
+	r.GET("/delete/:uuid/:filename", func(c *gin.Context) {
+		model.FileDeleteHandler(c, redisPool.Get())
+	})
 	r.POST("/upload", func(c *gin.Context) {
 		model.FileUploadHandler(c, redisPool.Get())
 	})

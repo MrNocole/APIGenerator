@@ -20,7 +20,10 @@ import (
 //		3.把中转缓存的文件存到仓库，更新仓库清单 （用文件MD5做的清单，清单有严重的性能问题，下面注释里有）
 //		4.把上传成功的全部文件文件名和MD5对应写到上传者的Json文件里
 
+// 仓库清单锁
 var jsonLock sync.Mutex
+
+// 用户清单锁
 var lockMap = make(map[string]*sync.Mutex)
 
 // FileJson 文件Json格式 (完整信息)
@@ -38,10 +41,112 @@ type OwnerInfo struct {
 	MD5      []string `json:"md5"`
 }
 
-// FileMD5 文件Json格式，存硬盘
+// FileMD5 仓库清单Json格式，存硬盘
 type FileMD5 struct {
 	MD5   string `json:"md5"`
 	Count int64  `json:"count"`
+}
+
+func FileDeleteHandler(c *gin.Context, Conn redis.Conn) {
+	filename := c.Param("filename")
+	uuid := c.Param("uuid")
+	jsonfileName := "fileownerinfo/" + uuid + ".json"
+	lock := GetOwnerLock(uuid)
+	lock.Lock()
+	data, err := ioutil.ReadFile(jsonfileName)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status":  "error",
+			"message": "读取用户 json 失败",
+		})
+		lock.Unlock()
+		return
+	}
+	var ownerInfo OwnerInfo
+	err = json.Unmarshal(data, &ownerInfo)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status":  "error",
+			"message": "解析用户 json 失败",
+		})
+		lock.Unlock()
+		return
+	}
+	var deleteMd5 string
+	for i, v := range ownerInfo.FileName {
+		if v == filename {
+			ownerInfo.FileName = append(ownerInfo.FileName[:i], ownerInfo.FileName[i+1:]...)
+			ownerInfo.MD5 = append(ownerInfo.MD5[:i], ownerInfo.MD5[i+1:]...)
+			deleteMd5 = ownerInfo.MD5[i]
+			break
+		}
+	}
+	deletedData, err := json.Marshal(ownerInfo)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status":  "error",
+			"message": "修改用户 json 失败",
+		})
+		lock.Unlock()
+		return
+	}
+	go DeleteMd5(deleteMd5)
+	go util.RedisRemoveH(Conn, uuid, filename)
+	err = os.WriteFile(jsonfileName, deletedData, 0666)
+	if err != nil {
+		c.JSON(200, gin.H{
+			"status":  "error",
+			"message": "写入用户 json 失败",
+		})
+	}
+	lock.Unlock()
+}
+
+func DeleteMd5(md5 string) {
+	filePath := "Documentation.json"
+	jsonLock.Lock()
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		fmt.Println("读取仓库清单失败", err)
+		jsonLock.Unlock()
+		return
+	}
+	var fileList []FileMD5
+	err = json.Unmarshal(data, &fileList)
+	if err != nil {
+		fmt.Println("解析仓库清单失败", err)
+		jsonLock.Unlock()
+		return
+	}
+	for i := range fileList {
+		if md5 == fileList[i].MD5 {
+			fileList[i].Count--
+			if fileList[i].Count == 0 {
+				fileList = append(fileList[:i], fileList[i+1:]...)
+				removeFileInStore(fileList[i].MD5)
+			}
+			break
+		}
+	}
+	data, err = json.Marshal(fileList)
+	if err != nil {
+		fmt.Println("更新仓库解析清单失败", err)
+		jsonLock.Unlock()
+		return
+	}
+	err = os.WriteFile(filePath, data, 0666)
+	if err != nil {
+		fmt.Println("写入仓库清单失败", err)
+	}
+	jsonLock.Unlock()
+}
+
+func removeFileInStore(md5 string) {
+	filePath := "store/" + md5
+	err := os.Remove(filePath)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 // FileUploadHandler 处理上传post

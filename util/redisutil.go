@@ -96,3 +96,10 @@ func RedisInsertH(Conn redis.Conn, UUid string, key string, arg string) {
 		fmt.Println("redis插入失败", err)
 	}
 }
+
+func RedisRemoveH(Conn redis.Conn, UUid string, key string) {
+	_, err := Conn.Do("HDEL", UUid, key)
+	if err != nil {
+		fmt.Println("redis删除失败", err)
+	}
+}
